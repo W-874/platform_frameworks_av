@@ -22,6 +22,10 @@
 #include <utils/KeyedVector.h>
 #include <utils/RefBase.h>
 
+#if defined(USE_VNDK33_AHANDLER) && defined(__ANDROID_VENDOR__)
+#define LEGACY_VENDOR_AHANDLER
+#endif
+
 namespace android {
 
 struct AMessage;
@@ -30,11 +34,7 @@ struct AHandler : public RefBase {
     AHandler()
         : mID(0),
           mVerboseStats(false),
-          mMessageCounter(0),
-          mDeliveringMessage(false),
-          mCurrentMessageWhat(0),
-          mCurrentMessageStartTimeUs(0){
-    }
+          mMessageCounter(0) {}
 
     ALooper::handler_id id() const {
         return mID;
@@ -72,15 +72,20 @@ private:
     uint64_t mMessageCounter;
     KeyedVector<uint32_t, uint32_t> mMessages;
 
+#ifndef LEGACY_VENDOR_AHANDLER
+    // These trailing fields are not present in the VNDK33 base class.
     Mutex mLock;
-    bool mDeliveringMessage;
-    uint32_t  mCurrentMessageWhat;
-    int64_t mCurrentMessageStartTimeUs;
+    bool mDeliveringMessage = false;
+    uint32_t mCurrentMessageWhat = 0;
+    int64_t mCurrentMessageStartTimeUs = 0;
+#endif
 
     void deliverMessage(const sp<AMessage> &msg);
 
+#ifndef LEGACY_VENDOR_AHANDLER
     void setDeliveryStatus(bool, uint32_t, int64_t);
     void getDeliveryStatus(bool&, uint32_t&, int64_t&);
+#endif
 
 
     DISALLOW_EVIL_CONSTRUCTORS(AHandler);

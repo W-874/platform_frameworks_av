@@ -23,6 +23,10 @@ cc_library_headers {
     vendor_available: true,
     host_supported: true,
     min_sdk_version: "29",
+    export_cflags: select(soong_config_variable("frameworks_av", "legacy_vendor_ahandler"), {
+        true: ["-DUSE_VNDK33_AHANDLER"],
+        default: [],
+    }),
     apex_available: [
         "//apex_available:platform",
         "com.android.media",

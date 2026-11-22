@@ -24,10 +24,14 @@
 namespace android {
 
 void AHandler::deliverMessage(const sp<AMessage> &msg) {
+#ifndef LEGACY_VENDOR_AHANDLER
     setDeliveryStatus(true, msg->what(), ALooper::GetNowUs());
+#endif
     onMessageReceived(msg);
     mMessageCounter++;
+#ifndef LEGACY_VENDOR_AHANDLER
     setDeliveryStatus(false, 0, 0);
+#endif
 
     if (mVerboseStats) {
         uint32_t what = msg->what();
@@ -40,6 +44,7 @@ void AHandler::deliverMessage(const sp<AMessage> &msg) {
     }
 }
 
+#ifndef LEGACY_VENDOR_AHANDLER
 void AHandler::setDeliveryStatus(bool delivering, uint32_t what, int64_t startUs) {
     AutoMutex autoLock(mLock);
     mDeliveringMessage = delivering;
@@ -54,5 +59,6 @@ void AHandler::getDeliveryStatus(bool& delivering, uint32_t& what, int64_t& dura
     durationUs = mCurrentMessageStartTimeUs == 0 ?
             0 : ALooper::GetNowUs() - mCurrentMessageStartTimeUs;
 }
+#endif
 
 }  // namespace android

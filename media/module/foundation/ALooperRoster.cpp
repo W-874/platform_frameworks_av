@@ -143,13 +143,18 @@ void ALooperRoster::dump(int fd, const Vector<String16>& args) {
             s.append(looper->getName());
             sp<AHandler> handler = info.mHandler.promote();
             if (handler != NULL) {
+#ifndef LEGACY_VENDOR_AHANDLER
                 bool deliveringMessages;
                 uint32_t currentMessageWhat;
                 int64_t currentDeliveryDurationUs;
                 handler->getDeliveryStatus(deliveringMessages,
                                            currentMessageWhat,
                                            currentDeliveryDurationUs);
+#endif
                 handler->mVerboseStats = verboseStats;
+#ifdef LEGACY_VENDOR_AHANDLER
+                s.appendFormat(": %" PRIu64 " messages processed", handler->mMessageCounter);
+#else
                 s.appendFormat(": %" PRIu64 " messages processed, delivering "
                                "%d, current msg %" PRIu32 ", current msg "
                                "durationUs %" PRIu64 "",
@@ -157,6 +162,7 @@ void ALooperRoster::dump(int fd, const Vector<String16>& args) {
                                deliveringMessages,
                                currentMessageWhat,
                                currentDeliveryDurationUs);
+#endif
                 if (verboseStats) {
                     for (size_t j = 0; j < handler->mMessages.size(); j++) {
                         char fourcc[15];
